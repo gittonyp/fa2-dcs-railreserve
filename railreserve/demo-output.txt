@@ -1,0 +1,15 @@
+BASE_URL=http://nginx
+DATABASE_URL=postgresql://rail:rail@postgres:5432/railreserve
+HOLD_TTL_SECONDS=120
+health: ready at http://nginx
+PASS naive_race: 20/20 requests won; stats.naive_winners=20
+PASS safe_race: 201=1, 409=19, stats.held=1
+PASS inventory_sweep: 201=50, distinct seats=50, 409=150, statuses={409: 150, 201: 50}
+PASS idempotent_payment: 200=10, booking_ids=1, payments=1, pnr=PNR1000000000
+PASS expiry: forced expiry into the past; second hold=201; configured ttl=120s
+  docker compose stop api1
+  curl -i http://localhost:8080/health
+  curl -i http://localhost:8080/api/seats?train_id=12951&journey_date=2026-11-01
+  docker compose start api1
+PASS failover: health=200; commands printed above
+6/6 scenarios passed

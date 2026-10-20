@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.playwright-mcp/
+.env
+.venv/
+venv/
+report/report_draft.*
+report/report_final.*
+report/report_overlay.pdf

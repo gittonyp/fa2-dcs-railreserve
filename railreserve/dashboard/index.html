@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RailReserve · Double-booking lab</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b1014;
+    --panel: #11181e;
+    --panel-2: #162129;
+    --line: #26343e;
+    --text: #e8eef2;
+    --muted: #93a4b0;
+    --green: #58d68d;
+    --green-soft: #173d2b;
+    --amber: #f4c95d;
+    --amber-soft: #3b3116;
+    --red: #ff7b72;
+    --red-soft: #401f21;
+    --blue: #7cc4ff;
+    --radius: 18px;
+    --shadow: 0 18px 60px rgba(0, 0, 0, .35);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 10% -10%, rgba(88, 214, 141, .14), transparent 34rem),
+      radial-gradient(circle at 100% 0%, rgba(124, 196, 255, .12), transparent 30rem),
+      var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  button, input { font: inherit; }
+
+  .wrap {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 22px 0 56px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mark {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(88, 214, 141, .45);
+    border-radius: 13px;
+    background: linear-gradient(145deg, rgba(88, 214, 141, .2), rgba(88, 214, 141, .04));
+    color: var(--green);
+    font-weight: 800;
+    letter-spacing: -.04em;
+  }
+
+  h1, h2, h3, p { margin: 0; }
+  h1 { font-size: 1.05rem; letter-spacing: .01em; }
+  .brand p { color: var(--muted); font-size: .8rem; margin-top: 3px; }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(17, 24, 30, .8);
+    color: var(--muted);
+    font-size: .78rem;
+    white-space: nowrap;
+  }
+
+  .status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 0 0 0 4px rgba(244, 201, 93, .12);
+  }
+
+  .status.online::before { background: var(--green); box-shadow: 0 0 0 4px rgba(88, 214, 141, .12); }
+  .status.offline::before { background: var(--red); box-shadow: 0 0 0 4px rgba(255, 123, 114, .12); }
+
+  .hero {
+    display: grid;
+    grid-template-columns: 1.15fr .85fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(22, 33, 41, .92), rgba(17, 24, 30, .96));
+    box-shadow: var(--shadow);
+  }
+
+  .hero-copy { padding: 28px; }
+  .eyebrow {
+    color: var(--green);
+    font-size: .74rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .hero h2 {
+    max-width: 15ch;
+    font-size: clamp(1.9rem, 4vw, 3.2rem);
+    line-height: 1.02;
+    letter-spacing: -.055em;
+  }
+
+  .lede {
+    max-width: 58ch;
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: .95rem;
+    line-height: 1.6;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 20px;
+    align-content: start;
+  }
+
+  label {
+    display: grid;
+    gap: 7px;
+    color: var(--muted);
+    font-size: .74rem;
+    font-weight: 650;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  input {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: #0d1419;
+    color: var(--text);
+    padding: 10px 11px;
+    outline: none;
+  }
+
+  input:focus { border-color: rgba(88, 214, 141, .65); box-shadow: 0 0 0 3px rgba(88, 214, 141, .1); }
+
+  .controls button { grid-column: span 1; }
+
+  .btn {
+    border: 1px solid transparent;
+    border-radius: 11px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: transform .15s ease, filter .15s ease, opacity .15s ease;
+  }
+
+  .btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.08); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn.primary { background: var(--green); color: #062015; }
+  .btn.secondary { background: var(--panel-2); border-color: var(--line); color: var(--text); }
+  .btn.danger { background: var(--red); color: #2a0b09; }
+  .btn.ghost { background: transparent; border-color: var(--line); color: var(--muted); padding: 7px 10px; font-size: .78rem; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .stat {
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(17, 24, 30, .86);
+  }
+
+  .stat span {
+    display: block;
+    color: var(--muted);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .stat strong {
+    display: block;
+    margin-top: 7px;
+    font-size: 1.7rem;
+    line-height: 1;
+    letter-spacing: -.04em;
+  }
+
+  .stat.safe strong { color: var(--green); }
+  .stat.naive strong { color: var(--red); }
+  .stat.held strong { color: var(--amber); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1.4fr .6fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .panel-pad { padding: 20px; }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .panel h3 { font-size: .98rem; letter-spacing: -.01em; }
+  .panel-head span { color: var(--muted); font-size: .78rem; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 14px;
+    color: var(--muted);
+    font-size: .76rem;
+  }
+
+  .legend i {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    margin-right: 6px;
+    border-radius: 3px;
+    vertical-align: 1px;
+  }
+
+  .legend .available { background: var(--green); }
+  .legend .held { background: var(--amber); }
+  .legend .booked { background: var(--red); }
+
+  .seat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+    gap: 8px;
+  }
+
+  .seat {
+    display: grid;
+    place-items: center;
+    min-height: 52px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: .76rem;
+    font-weight: 750;
+    letter-spacing: .02em;
+    transition: transform .18s ease, background .18s ease, border-color .18s ease;
+  }
+
+  .seat:hover { transform: translateY(-2px); }
+  .seat[data-status="available"] { border-color: rgba(88, 214, 141, .28); background: var(--green-soft); color: #bff4d4; }
+  .seat[data-status="held"] { border-color: rgba(244, 201, 93, .42); background: var(--amber-soft); color: #ffe6a3; }
+  .seat[data-status="booked"] { border-color: rgba(255, 123, 114, .42); background: var(--red-soft); color: #ffb7b2; }
+
+  .race-panel { padding: 20px; display: grid; align-content: start; gap: 10px; }
+  .race-panel p { color: var(--muted); font-size: .86rem; line-height: 1.55; margin-bottom: 4px; }
+  .race-panel .btn { width: 100%; }
+
+  .result {
+    min-height: 56px;
+    margin-top: 4px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: #0d1419;
+    color: var(--muted);
+    font-size: .8rem;
+    line-height: 1.5;
+  }
+
+  .result strong { color: var(--text); }
+
+  .log-panel { padding: 20px; margin-bottom: 18px; }
+  .log {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 240px;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #0a1014;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .78rem;
+  }
+
+  .log li {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    gap: 10px;
+    padding: 9px 12px;
+    border-bottom: 1px solid rgba(38, 52, 62, .65);
+  }
+
+  .log li:last-child { border-bottom: 0; }
+  .log time { color: #647987; }
+  .log .ok { color: var(--green); }
+  .log .bad { color: var(--red); }
+  .log .warn { color: var(--amber); }
+
+  .explain {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .explain article {
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(13, 20, 25, .72);
+  }
+
+  .explain h4 { margin: 0 0 7px; font-size: .84rem; }
+  .explain p { margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.55; }
+  .explain code { color: var(--blue); font-size: .74rem; }
+
+  @media (max-width: 900px) {
+    .hero, .layout { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: repeat(3, 1fr); }
+    .explain { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 560px) {
+    .wrap { width: min(100% - 20px, 1180px); }
+    .topbar { align-items: flex-start; }
+    .hero-copy { padding: 20px; }
+    .controls { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .log li { grid-template-columns: 1fr; gap: 3px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <div class="mark">RR</div>
+      <div>
+        <h1>RailReserve</h1>
+        <p>Distributed seat-booking lab</p>
+      </div>
+    </div>
+    <div class="status" id="system-status">Connecting</div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="panel hero-copy">
+        <p class="eyebrow">DCS FA2 · Case study</p>
+        <h2>One seat. Twenty buyers. One winner.</h2>
+        <p class="lede">
+          The safe path pushes the availability check into a single conditional
+          Postgres update. The naive path reads, sleeps, then writes, so concurrent
+          requests can all believe the seat is free. Run both and compare.
+        </p>
+      </div>
+      <div class="panel controls">
+        <label>Train
+          <input id="train-id" value="12951" autocomplete="off">
+        </label>
+        <label>Journey date
+          <input id="journey-date" type="date" value="2026-11-01">
+        </label>
+        <label>Seats
+          <input id="seat-count" type="number" value="50" min="1" max="500">
+        </label>
+        <label>Target seat
+          <input id="target-seat" value="S1-01" autocomplete="off">
+        </label>
+        <button class="btn secondary" id="reset-demo">Reset demo</button>
+        <button class="btn secondary" id="refresh">Refresh</button>
+      </div>
+    </section>
+
+    <section class="stat-grid">
+      <div class="stat"><span>Available</span><strong id="stat-available">0</strong></div>
+      <div class="stat held"><span>Held</span><strong id="stat-held">0</strong></div>
+      <div class="stat"><span>Booked</span><strong id="stat-booked">0</strong></div>
+      <div class="stat safe"><span>Safe bookings</span><strong id="stat-safe">0</strong></div>
+      <div class="stat naive"><span>Naive winners</span><strong id="stat-naive">0</strong></div>
+    </section>
+
+    <section class="layout">
+      <div class="panel panel-pad">
+        <div class="panel-head">
+          <h3>Seat map</h3>
+          <span id="seat-summary">Waiting for reset</span>
+        </div>
+        <div class="legend">
+          <span><i class="available"></i>Available</span>
+          <span><i class="held"></i>Held</span>
+          <span><i class="booked"></i>Booked</span>
+        </div>
+        <div class="seat-grid" id="seat-grid"></div>
+      </div>
+
+      <div class="panel race-panel">
+        <h3>Race the write path</h3>
+        <p>Both races fire 20 attempts for the target seat. The safe race uses the conditional update and unique hold index. The browser may hold some attempts back because of its per-host connection limit; the CLI script sends all 20 at once.</p>
+        <button class="btn primary" id="race-safe">Race safe holds (20 attempts)</button>
+        <button class="btn danger" id="race-naive">Race naive holds (20 attempts)</button>
+        <button class="btn secondary" id="pay-twice" disabled>Pay winner twice</button>
+        <div class="result" id="race-result">Run a race to see the result.</div>
+      </div>
+    </section>
+
+    <section class="panel log-panel">
+      <div class="panel-head">
+        <h3>Event log</h3>
+        <button class="btn ghost" id="clear-log">Clear</button>
+      </div>
+      <ol class="log" id="log" aria-live="polite"></ol>
+    </section>
+
+    <section class="explain">
+      <article>
+        <h4>Safe hold</h4>
+        <p>A single <code>UPDATE ... WHERE status='available'</code> takes a row lock. A partial unique index allows only one active hold per seat.</p>
+      </article>
+      <article>
+        <h4>Naive hold</h4>
+        <p>Read availability, wait, then write without a guard. Every request can pass the read and create its own winner.</p>
+      </article>
+      <article>
+        <h4>Idempotent payment</h4>
+        <p>The payment key is unique. Replaying the same request returns the original booking and PNR instead of charging twice.</p>
+      </article>
+    </section>
+  </main>
+</div>
+
+<script>
+  const el = (id) => document.getElementById(id);
+  const state = { winnerHoldId: null, busy: false };
+  const logList = el("log");
+
+  function now() {
+    return new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+  }
+
+  function log(message, tone = "") {
+    const item = document.createElement("li");
+    const time = document.createElement("time");
+    const text = document.createElement("span");
+    time.textContent = now();
+    text.textContent = message;
+    if (tone) text.className = tone;
+    item.append(time, text);
+    logList.append(item);
+    while (logList.children.length > 100) logList.firstElementChild.remove();
+    logList.scrollTop = logList.scrollHeight;
+  }
+
+  function setStatus(label, mode) {
+    const box = el("system-status");
+    box.textContent = label;
+    box.className = `status ${mode || ""}`.trim();
+  }
+
+  function config() {
+    return {
+      train_id: el("train-id").value.trim() || "12951",
+      journey_date: el("journey-date").value,
+      seat_count: Math.max(1, Math.min(500, Number(el("seat-count").value) || 50)),
+    };
+  }
+
+  async function request(path, options = {}) {
+    try {
+      const response = await fetch(path, options);
+      let data = null;
+      try { data = await response.json(); } catch (_) {}
+      return { status: response.status, data };
+    } catch (error) {
+      return { status: 0, data: { detail: String(error) } };
+    }
+  }
+
+  function post(path, body) {
+    return request(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  }
+
+  function setBusy(value) {
+    state.busy = value;
+    for (const id of ["reset-demo", "refresh", "race-safe", "race-naive"]) {
+      el(id).disabled = value;
+    }
+    el("pay-twice").disabled = value || !state.winnerHoldId;
+  }
+
+  function renderSeats(seats, cfg) {
+    const grid = el("seat-grid");
+    grid.replaceChildren();
+    for (const seat of seats) {
+      const cell = document.createElement("div");
+      cell.className = "seat";
+      cell.dataset.status = seat.status;
+      cell.textContent = seat.seat_no;
+      cell.title = `${seat.seat_no}: ${seat.status}`;
+      grid.append(cell);
+    }
+    el("seat-summary").textContent =
+      `${seats.length} seats · ${cfg.train_id} · ${cfg.journey_date}`;
+  }
+
+  function renderStats(stats) {
+    el("stat-available").textContent = stats.available ?? 0;
+    el("stat-held").textContent = stats.held ?? 0;
+    el("stat-booked").textContent = stats.booked ?? 0;
+    el("stat-safe").textContent = stats.safe_bookings ?? 0;
+    el("stat-naive").textContent = stats.naive_winners ?? 0;
+  }
+
+  async function refresh() {
+    const cfg = config();
+    const [seats, stats] = await Promise.all([
+      request(`/api/seats?train_id=${encodeURIComponent(cfg.train_id)}&journey_date=${cfg.journey_date}`),
+      request(`/api/stats?train_id=${encodeURIComponent(cfg.train_id)}&journey_date=${cfg.journey_date}`),
+    ]);
+    if (seats.status === 200) renderSeats(seats.data.seats, cfg);
+    if (stats.status === 200) renderStats(stats.data);
+    if (seats.status !== 200 || stats.status !== 200) {
+      setStatus("Offline", "offline");
+      log(`Refresh failed (${seats.status}/${stats.status}).`, "bad");
+    }
+  }
+
+  async function resetDemo(silent = false) {
+    if (state.busy) return false;
+    setBusy(true);
+    const cfg = config();
+    const result = await post("/api/demo/reset", cfg);
+    if (result.status === 200) {
+      state.winnerHoldId = null;
+      el("pay-twice").disabled = true;
+      el("race-result").textContent = "Demo reset. Ready for a race.";
+      setStatus("Online", "online");
+      await refresh();
+      if (!silent) log(`Reset ${cfg.train_id} on ${cfg.journey_date} with ${cfg.seat_count} seats.`, "ok");
+    } else {
+      setStatus("Offline", "offline");
+      log(`Reset failed (${result.status}).`, "bad");
+    }
+    setBusy(false);
+    return result.status === 200;
+  }
+
+  async function raceSafe() {
+    if (state.busy) return;
+    setBusy(true);
+    const cfg = config();
+    const target = el("target-seat").value.trim() || "S1-01";
+    el("race-result").textContent = "Running 20 safe holds...";
+    log(`Safe race started for ${target}.`, "warn");
+    const reset = await post("/api/demo/reset", cfg);
+    if (reset.status !== 200) {
+      setBusy(false);
+      setStatus("Offline", "offline");
+      log(`Safe race aborted: reset failed (${reset.status}).`, "bad");
+      return;
+    }
+    state.winnerHoldId = null;
+    const batch = `safe-${Date.now()}`;
+    const results = await Promise.all(
+      Array.from({ length: 20 }, (_, i) =>
+        post("/api/bookings/hold", {
+          train_id: cfg.train_id,
+          journey_date: cfg.journey_date,
+          seat_no: target,
+          user_id: `${batch}-${i}`,
+        })
+      )
+    );
+    const winners = results.filter((r) => r.status === 201);
+    const rejected = results.filter((r) => r.status === 409);
+    const other = results.filter((r) => r.status !== 201 && r.status !== 409);
+    if (winners.length > 0) {
+      state.winnerHoldId = winners[0].data.hold_id;
+      el("pay-twice").disabled = false;
+    }
+    el("race-result").textContent =
+      `Safe path: ${winners.length} winner, ${rejected.length} rejected` +
+      (other.length ? `, ${other.length} other` : "") + ".";
+    log(
+      `Safe race finished: ${winners.length} winner, ${rejected.length} rejected.`,
+      winners.length === 1 ? "ok" : "bad"
+    );
+    if (other.length) log(`Unexpected statuses: ${other.map((r) => r.status).join(", ")}.`, "bad");
+    await refresh();
+    setBusy(false);
+  }
+
+  async function raceNaive() {
+    if (state.busy) return;
+    setBusy(true);
+    const cfg = config();
+    const target = el("target-seat").value.trim() || "S1-01";
+    el("race-result").textContent = "Running 20 naive holds...";
+    log(`Naive race started for ${target}.`, "warn");
+    const reset = await post("/api/demo/reset", cfg);
+    if (reset.status !== 200) {
+      setBusy(false);
+      setStatus("Offline", "offline");
+      log(`Naive race aborted: reset failed (${reset.status}).`, "bad");
+      return;
+    }
+    state.winnerHoldId = null;
+    el("pay-twice").disabled = true;
+    const batch = `naive-${Date.now()}`;
+    const results = await Promise.all(
+      Array.from({ length: 20 }, (_, i) =>
+        post("/api/naive/hold", {
+          train_id: cfg.train_id,
+          journey_date: cfg.journey_date,
+          seat_no: target,
+          user_id: `${batch}-${i}`,
+        })
+      )
+    );
+    const winners = results.filter((r) => r.status === 201);
+    el("race-result").textContent = `Naive path: ${winners.length} winners from 20 attempts for one seat.`;
+    log(`Naive race finished: ${winners.length} winners from 20 attempts.`, winners.length > 1 ? "bad" : "warn");
+    await refresh();
+    setBusy(false);
+  }
+
+  async function payTwice() {
+    if (state.busy || !state.winnerHoldId) return;
+    setBusy(true);
+    const key = `demo-pay-${Date.now()}`;
+    const path = `/api/bookings/${state.winnerHoldId}/pay`;
+    const body = { idempotency_key: key, amount: "1200.00" };
+    log(`Paying winner twice with key ${key}.`, "warn");
+    const first = await post(path, body);
+    const second = await post(path, body);
+    if (first.status === 200 && second.status === 200) {
+      const same = first.data.booking_id === second.data.booking_id;
+      el("race-result").textContent =
+        `Payment replay: ${same ? "same booking" : "different booking"} · PNR ${first.data.pnr}`;
+      log(
+        `Payment 1: ${first.data.pnr}; payment 2: ${second.data.pnr}; same booking: ${same}.`,
+        same ? "ok" : "bad"
+      );
+    } else {
+      el("race-result").textContent = `Payment failed (${first.status}/${second.status}).`;
+      log(`Payment failed (${first.status}/${second.status}).`, "bad");
+    }
+    await refresh();
+    setBusy(false);
+  }
+
+  el("reset-demo").addEventListener("click", () => resetDemo());
+  el("refresh").addEventListener("click", refresh);
+  el("race-safe").addEventListener("click", raceSafe);
+  el("race-naive").addEventListener("click", raceNaive);
+  el("pay-twice").addEventListener("click", payTwice);
+  el("clear-log").addEventListener("click", () => logList.replaceChildren());
+
+  resetDemo(true);
+</script>
+</body>
+</html>

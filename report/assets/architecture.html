@@ -1,0 +1,54 @@
+<!doctype html><html><head><meta charset='utf-8'><style>html,body{margin:0;background:#fff}</style></head><body><svg xmlns="http://www.w3.org/2000/svg" width="1360" height="700" viewBox="0 0 1360 700" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-dash" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 z" fill="#0f766e"/>
+    </marker>
+  </defs>
+  <rect width="1360" height="700" fill="#ffffff"/>
+  <text x="680" y="58" font-size="30" font-weight="700" text-anchor="middle" fill="#0f172a">RailReserve logical architecture</text>
+  <text x="680" y="92" font-size="19" text-anchor="middle" fill="#475569">The API tier is stateless; Postgres is the authority for inventory.</text>
+
+  <rect x="545" y="130" width="270" height="70" rx="12" fill="#e0f2fe" stroke="#0369a1" stroke-width="2.5"/>
+  <text x="680" y="162" font-size="22" font-weight="700" text-anchor="middle" fill="#0c4a6e">Browser dashboard</text>
+  <text x="680" y="186" font-size="17" text-anchor="middle" fill="#0c4a6e">safe race · naive race · payment</text>
+
+  <line x1="680" y1="200" x2="680" y2="258" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="698" y="234" font-size="17" fill="#475569">HTTP/JSON</text>
+
+  <rect x="545" y="260" width="270" height="70" rx="12" fill="#f1f5f9" stroke="#334155" stroke-width="2.5"/>
+  <text x="680" y="292" font-size="22" font-weight="700" text-anchor="middle" fill="#0f172a">Nginx :8080</text>
+  <text x="680" y="316" font-size="17" text-anchor="middle" fill="#475569">upstream, static dashboard, X-Upstream</text>
+
+  <line x1="620" y1="330" x2="410" y2="400" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="740" y1="330" x2="950" y2="400" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <rect x="250" y="402" width="300" height="92" rx="12" fill="#dcfce7" stroke="#15803d" stroke-width="2.5"/>
+  <text x="400" y="437" font-size="22" font-weight="700" text-anchor="middle" fill="#14532d">api1 · FastAPI</text>
+  <text x="400" y="462" font-size="17" text-anchor="middle" fill="#14532d">stateless replica + sweeper</text>
+  <text x="400" y="484" font-size="15" text-anchor="middle" fill="#166534">max_fails=1 · fail_timeout=5s</text>
+
+  <rect x="810" y="402" width="300" height="92" rx="12" fill="#dcfce7" stroke="#15803d" stroke-width="2.5"/>
+  <text x="960" y="437" font-size="22" font-weight="700" text-anchor="middle" fill="#14532d">api2 · FastAPI</text>
+  <text x="960" y="462" font-size="17" text-anchor="middle" fill="#14532d">stateless replica + sweeper</text>
+  <text x="960" y="484" font-size="15" text-anchor="middle" fill="#166534">any replica can serve any request</text>
+
+  <line x1="400" y1="494" x2="585" y2="570" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="960" y1="494" x2="775" y2="570" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="680" y="530" font-size="17" text-anchor="middle" fill="#475569">SQL transactions</text>
+
+  <rect x="500" y="572" width="360" height="96" rx="12" fill="#fef3c7" stroke="#b45309" stroke-width="2.5"/>
+  <text x="680" y="607" font-size="23" font-weight="700" text-anchor="middle" fill="#78350f">Postgres 16 primary</text>
+  <text x="680" y="632" font-size="17" text-anchor="middle" fill="#78350f">seats · holds · bookings · payments</text>
+  <text x="680" y="655" font-size="15" text-anchor="middle" fill="#92400e">row locks + unique indexes = arbiter of the invariant</text>
+
+  <line x1="1110" y1="448" x2="1185" y2="448" stroke="#0f766e" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow-dash)"/>
+  <rect x="1190" y="402" width="150" height="92" rx="12" fill="#ccfbf1" stroke="#0f766e" stroke-width="2.5"/>
+  <text x="1265" y="437" font-size="20" font-weight="700" text-anchor="middle" fill="#134e4a">Redis 7</text>
+  <text x="1265" y="461" font-size="15" text-anchor="middle" fill="#134e4a">fixed-window</text>
+  <text x="1265" y="481" font-size="15" text-anchor="middle" fill="#134e4a">rate limit, fail-open</text>
+  <text x="1150" y="530" font-size="16" text-anchor="middle" fill="#0f766e">not on the booking critical path</text>
+</svg>
+</body></html>

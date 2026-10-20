@@ -1,0 +1,44 @@
+<!doctype html><html><head><meta charset='utf-8'><style>
+body { margin:0; background:#ffffff; }
+.terminal { width:1400px; margin:0; background:#0b1220; border-radius:14px; overflow:hidden; border:1px solid #1e293b; font-family:'JetBrains Mono','Fira Code',Consolas,'DejaVu Sans Mono',monospace; }
+.bar { height:46px; background:#111c2f; display:flex; align-items:center; gap:10px; padding:0 18px; border-bottom:1px solid #1e293b; }
+.dot { width:13px; height:13px; border-radius:50%; display:inline-block; }
+.red { background:#ef4444; } .yellow { background:#f59e0b; } .green { background:#22c55e; }
+.title { color:#94a3b8; font-size:16px; margin-left:12px; letter-spacing:.4px; }
+pre { margin:0; padding:24px 28px; color:#cbd5e1; font-size:17px; line-height:1.5; white-space:pre-wrap; }
+.pass { color:#4ade80; font-weight:700; }
+.fail { color:#f87171; font-weight:700; }
+.test { color:#7dd3fc; }
+.meta { color:#fbbf24; font-weight:700; }
+.dim { color:#64748b; }
+</style></head><body><div class='terminal'><div class='bar'><span class='dot red'></span><span class='dot yellow'></span><span class='dot green'></span><span class='title'>pytest -v — 15 concurrency and API tests</span></div><pre><span class="meta">============================= test session starts ==============================</span>
+platform linux -- Python 3.12.15, pytest-8.3.4, pluggy-1.7.0 -- /usr/local/bin/python3.12
+cachedir: .pytest_cache
+rootdir: /app
+configfile: pytest.ini
+plugins: anyio-4.15.1
+<span class="meta">collecting ... collected 15 items</span>
+
+<span class="pass">tests/test_concurrency.py::test_safe_hold_allows_exactly_one_winner PASSED [  6%]</span>
+<span class="pass">tests/test_concurrency.py::test_naive_path_can_produce_multiple_winners PASSED [ 13%]</span>
+<span class="pass">tests/test_demo.py::test_demo_reset_and_stats_endpoints PASSED           [ 20%]</span>
+<span class="pass">tests/test_health.py::test_health PASSED                                 [ 26%]</span>
+<span class="pass">tests/test_hold.py::test_hold_seat_marks_seat_held PASSED                [ 33%]</span>
+<span class="pass">tests/test_hold.py::test_second_hold_for_same_seat_is_rejected PASSED    [ 40%]</span>
+<span class="pass">tests/test_hold.py::test_expired_hold_can_be_reclaimed PASSED            [ 46%]</span>
+<span class="pass">tests/test_naive.py::test_naive_hold_creates_booking PASSED              [ 53%]</span>
+<span class="pass">tests/test_naive.py::test_naive_hold_rejects_unavailable_seat PASSED     [ 60%]</span>
+<span class="pass">tests/test_payment.py::test_payment_is_idempotent_and_marks_seat_booked PASSED [ 66%]</span>
+<span class="pass">tests/test_payment.py::test_concurrent_payment_with_same_key_creates_one_payment PASSED [ 73%]</span>
+<span class="pass">tests/test_payment.py::test_payment_after_expiry_is_rejected PASSED      [ 80%]</span>
+<span class="pass">tests/test_ratelimit.py::test_rate_limit_allows_within_limit_and_blocks_after PASSED [ 86%]</span>
+<span class="pass">tests/test_repository.py::test_reset_demo_seeds_requested_seats PASSED   [ 93%]</span>
+<span class="pass">tests/test_repository.py::test_reset_demo_clears_previous_state PASSED   [100%]</span>
+
+<span class="meta">=============================== warnings summary ===============================</span>
+../usr/local/lib/python3.12/site-packages/starlette/testclient.py:40
+  /usr/local/lib/python3.12/site-packages/starlette/testclient.py:40: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+<span class="meta">======================== 15 passed, 1 warning in 2.52s =========================</span></pre></div></body></html>

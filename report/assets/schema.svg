@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrow3" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect width="1400" height="900" fill="#ffffff"/>
+  <text x="700" y="48" font-size="30" font-weight="700" text-anchor="middle" fill="#0f172a">RailReserve database schema and guards</text>
+  <text x="700" y="80" font-size="19" text-anchor="middle" fill="#475569">The database, not the application, enforces the one-winner invariant.</text>
+
+  <g>
+    <rect x="60" y="120" width="390" height="238" rx="10" fill="#ffffff" stroke="#0369a1" stroke-width="2.5"/>
+    <rect x="60" y="120" width="390" height="42" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="2.5"/>
+    <text x="255" y="149" font-size="21" font-weight="700" text-anchor="middle" fill="#0c4a6e">seats</text>
+    <text x="82" y="192" font-size="17" fill="#0f172a">id  PK · serial</text>
+    <text x="82" y="220" font-size="17" fill="#0f172a">train_id · journey_date · seat_no</text>
+    <text x="82" y="248" font-size="17" fill="#0f172a">status  available | held | booked</text>
+    <text x="82" y="276" font-size="17" fill="#0f172a">hold_id · hold_expires_at · version</text>
+    <text x="82" y="312" font-size="16" font-weight="600" fill="#0369a1">UNIQUE (train_id, journey_date, seat_no)</text>
+    <text x="82" y="338" font-size="16" font-weight="600" fill="#0369a1">CHECK (status IN (available, held, booked))</text>
+  </g>
+
+  <g>
+    <rect x="60" y="440" width="390" height="270" rx="10" fill="#ffffff" stroke="#0f766e" stroke-width="2.5"/>
+    <rect x="60" y="440" width="390" height="42" rx="10" fill="#ccfbf1" stroke="#0f766e" stroke-width="2.5"/>
+    <text x="255" y="469" font-size="21" font-weight="700" text-anchor="middle" fill="#134e4a">holds</text>
+    <text x="82" y="512" font-size="17" fill="#0f172a">id  PK · uuid</text>
+    <text x="82" y="540" font-size="17" fill="#0f172a">seat_id  FK → seats.id</text>
+    <text x="82" y="568" font-size="17" fill="#0f172a">user_id · expires_at · created_at</text>
+    <text x="82" y="596" font-size="17" fill="#0f172a">status  active | paid | expired | cancelled</text>
+    <text x="82" y="632" font-size="16" font-weight="700" fill="#0f766e">partial UNIQUE INDEX (active holds only)</text>
+    <text x="82" y="656" font-size="15" fill="#134e4a">one_active_hold_per_seat ON holds (seat_id)</text>
+    <text x="82" y="680" font-size="15" fill="#134e4a">WHERE status = active</text>
+    <text x="82" y="702" font-size="15" font-weight="600" fill="#0f766e">second line of defence</text>
+  </g>
+
+  <g>
+    <rect x="560" y="120" width="430" height="280" rx="10" fill="#ffffff" stroke="#b45309" stroke-width="2.5"/>
+    <rect x="560" y="120" width="430" height="42" rx="10" fill="#fef3c7" stroke="#b45309" stroke-width="2.5"/>
+    <text x="775" y="149" font-size="21" font-weight="700" text-anchor="middle" fill="#78350f">bookings</text>
+    <text x="582" y="192" font-size="17" fill="#0f172a">id  PK · uuid</text>
+    <text x="582" y="220" font-size="17" fill="#0f172a">hold_id  UNIQUE FK → holds.id</text>
+    <text x="582" y="248" font-size="17" fill="#0f172a">seat_id  UNIQUE FK → seats.id</text>
+    <text x="582" y="276" font-size="17" fill="#0f172a">user_id · pnr UNIQUE · status</text>
+    <text x="582" y="304" font-size="17" fill="#0f172a">idempotency_key  UNIQUE</text>
+    <text x="582" y="340" font-size="16" font-weight="600" fill="#b45309">one booking per hold, per seat, per idempotency key</text>
+  </g>
+
+  <g>
+    <rect x="560" y="440" width="430" height="240" rx="10" fill="#ffffff" stroke="#be123c" stroke-width="2.5"/>
+    <rect x="560" y="440" width="430" height="42" rx="10" fill="#ffe4e6" stroke="#be123c" stroke-width="2.5"/>
+    <text x="775" y="469" font-size="21" font-weight="700" text-anchor="middle" fill="#881337">payments</text>
+    <text x="582" y="512" font-size="17" fill="#0f172a">id  PK · uuid</text>
+    <text x="582" y="540" font-size="17" fill="#0f172a">booking_id  FK → bookings.id</text>
+    <text x="582" y="568" font-size="17" fill="#0f172a">idempotency_key  UNIQUE</text>
+    <text x="582" y="596" font-size="17" fill="#0f172a">amount NUMERIC(10,2) · status</text>
+    <text x="582" y="636" font-size="16" font-weight="700" fill="#be123c">replay of the same key returns the original booking</text>
+  </g>
+
+  <g>
+    <rect x="1080" y="120" width="260" height="180" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="2.5"/>
+    <rect x="1080" y="120" width="260" height="42" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="2.5"/>
+    <text x="1210" y="149" font-size="21" font-weight="700" text-anchor="middle" fill="#334155">naive_bookings</text>
+    <text x="1102" y="192" font-size="17" fill="#0f172a">id PK · seat_id FK</text>
+    <text x="1102" y="220" font-size="17" fill="#0f172a">user_id · created_at</text>
+    <text x="1102" y="258" font-size="16" font-weight="600" fill="#64748b">no uniqueness constraint</text>
+    <text x="1102" y="282" font-size="15" fill="#475569">teaching control only</text>
+  </g>
+
+  <line x1="255" y1="440" x2="255" y2="358" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow3)"/>
+  <text x="268" y="404" font-size="16" fill="#475569">seat_id</text>
+
+  <line x1="490" y1="330" x2="560" y2="260" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow3)"/>
+  <text x="500" y="286" font-size="16" fill="#475569">seat_id</text>
+
+  <line x1="490" y1="470" x2="560" y2="300" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow3)"/>
+  <text x="502" y="376" font-size="16" fill="#475569">hold_id</text>
+
+  <line x1="775" y1="440" x2="775" y2="400" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow3)"/>
+  <text x="788" y="428" font-size="16" fill="#475569">booking_id</text>
+
+  <line x1="1080" y1="210" x2="990" y2="210" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow3)"/>
+  <text x="1000" y="204" font-size="16" fill="#475569">seat_id</text>
+
+  <rect x="60" y="760" width="1280" height="100" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="700" y="798" font-size="20" font-weight="700" text-anchor="middle" fill="#0f172a">Invariant chain</text>
+  <text x="700" y="828" font-size="18" text-anchor="middle" fill="#334155">available seat → one active hold (partial unique index) → one booking (unique seat_id and hold_id) → one captured payment (unique idempotency_key)</text>
+  <text x="700" y="852" font-size="16" text-anchor="middle" fill="#64748b">Every arrow is enforced by a constraint in Postgres, so a concurrent writer cannot bypass the rule by racing the application code.</text>
+</svg>
